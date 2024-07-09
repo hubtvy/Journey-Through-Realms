@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search and Display YouTube Video</title>
+    <!-- Bootstrap CSS link -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+          integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <!-- Font Awesome CSS link -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Custom CSS -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            padding: 20px;
+        }
+        .video-container {
+            margin-top: 20px;
+        }
+        .video-thumbnail {
+            max-width: 80%;
+            height: auto;
+        }
+        .embed-responsive-16by9 {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+        }
+        .embed-responsive-16by9 iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .back-button {
+            background: none;
+            border: none;
+            color: #007bff; /* Change color as needed */
+            font-size: 16px;
+            cursor: pointer;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        .back-button:hover {
+            color: #0056b3; /* Change hover color as needed */
+        }
+        .back-button i {
+            margin-left: 10px; /* Adjust spacing between icon and text */
+            margin-top: 10px;
+            font-size: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <button class="back-button" onclick="goBack()">
+        <i class="fas fa-arrow-circle-left"></i> 
+    </button>
+
+    <div class="container">
+        <h1 style="font-size: bold; margin-top: 20px;">YouTube Video</h1>
+        <div class="form-group">
+            <input type="text" style="margin-top: 20px;" class="form-control" id="searchTerm" placeholder="Enter Video Name">
+        </div>
+        <button type="button" class="btn btn-primary" onclick="searchAndDisplayVideo()">Search and Display Video</button>
+        
+        <div class="video-container" id="videoDetails">
+            <!-- Video player will be dynamically added here -->
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+            integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"
+            integrity="sha384-smtPB6pdQqGIAjItlF1qnDHlnTGvXpP99Dp9mxgyY1fGOd02FJ45TdW6dphA3LXT"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+            integrity="sha384-1DmTu78VYinoxXs1z7rW3kgiahc8saFieITfL/vvSb0FTb5pJKF0m0q/R5Tk1KkN"
+            crossorigin="anonymous"></script>
+
+    <script>
+        async function searchAndDisplayVideo() {
+            const searchTerm = document.getElementById('searchTerm').value.trim();
+            const apiKey = 'AIzaSyCgJ9AS3J50vlO6fKY1lRKQnbCaNZmGk9U'; // Replace with your YouTube Data API key
+            
+            if (!searchTerm) {
+                alert('Please enter a search term.');
+                return;
+            }
+            
+            // Log interaction
+            logInteraction('Search for video');
+
+            // Construct the API URL for searching videos
+            const apiUrl = `https://www.googleapis.com/youtube/v3/search?q=${encodeURIComponent(searchTerm)}&key=${apiKey}&part=snippet&type=video&maxResults=1`;
+            
+            try {
+                // Fetch data from YouTube API
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                
+                console.log(data); // Log the API response for testing
+                
+                if (!data.items || data.items.length === 0) {
+                    alert('No videos found for the given search term.');
+                    return;
+                }
+                
+                // Get details of the first video in the search results
+                const videoId = data.items[0].id.videoId;
+                const videoTitle = data.items[0].snippet.title;
+                const videoDescription = data.items[0].snippet.description;
+                
+                // Embed the video player
+                const videoDetailsContainer = document.getElementById('videoDetails');
+                videoDetailsContainer.innerHTML = `
+                    <h2>Video Details</h2>
+                    <p><strong>Title:</strong> ${videoTitle}</p>
+                    <p><strong>Description:</strong> ${videoDescription}</p>
+                    <div class="embed-responsive embed-responsive-16by9">
+                        <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                alert('Error fetching video details. Please try again later.');
+            }
+        }
+
+        function logInteraction(action) {
+            const interactions = JSON.parse(localStorage.getItem('interactions')) || [];
+            const now = new Date();
+            const date = now.toLocaleDateString();
+            const time = now.toLocaleTimeString();
+            const interaction = {
+                action,
+                date,
+                time
+            };
+            interactions.push(interaction);
+            localStorage.setItem('interactions', JSON.stringify(interactions));
+        }
+
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

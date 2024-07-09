@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaction History</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> <!-- Add this line -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 80%;
+            border-collapse: collapse;
+            margin: 0 auto; 
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            word-break: break-word; /* Ensure text wraps within cells */
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .clear-history-btn {
+            display: block;
+            min-width: 140px; /* Set a minimum width to ensure the text fits */
+            margin: 15px 0;
+            padding: 10px 20px; /* Adjust padding to provide enough space */
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center; /* Ensure text is centered */
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            color: #007bff; /* Change color as needed */
+            font-size: 16px;
+            cursor: pointer;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .back-button:hover {
+            color: #0056b3; /* Change hover color as needed */
+        }
+
+        .back-button i {
+            margin-left: 10px; /* Adjust spacing between icon and text */
+            margin-top: 10px;
+            font-size: 30px;
+        }
+        @media (max-width: 600px) {
+            table {
+                width: 80%;
+                font-size: 14px; /* Reduce font size for smaller screens */
+            }
+            .container {
+                padding: 10px; /* Reduce padding for smaller screens */
+            }
+        }
+        
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="goBack()">
+        <i class="fas fa-arrow-circle-left"></i> 
+    </button>
+
+    <div class="container">
+        <h1>Interaction History</h1>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="history-table-body">
+                <!-- Interaction records will be inserted here dynamically -->
+            </tbody>
+        </table>
+        <button class="clear-history-btn" onclick="clearHistory()">Clear History</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const historyTableBody = document.getElementById('history-table-body');
+            const interactions = JSON.parse(localStorage.getItem('interactions')) || [];
+
+            interactions.forEach(interaction => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${interaction.date}</td>
+                    <td>${interaction.time}</td>
+                    <td>${interaction.action}</td>
+                `;
+                historyTableBody.appendChild(row);
+            });
+        });
+
+        function clearHistory() {
+            localStorage.removeItem('interactions');
+            const historyTableBody = document.getElementById('history-table-body');
+            historyTableBody.innerHTML = '';
+        }
+
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

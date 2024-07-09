@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movies</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+            margin: 0;
+        }
+        .headercontainer {
+            text-align: center;
+            padding: 10px 0;
+            margin-bottom: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            padding: 20px;
+        }
+        .movie-item-container {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            overflow: hidden;
+        }
+        .movie-item {
+            display: flex;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .movie-details {
+            width: 70%;
+            margin-top: 20px;
+        }
+        .review {
+            margin-top: 10px;
+            margin-bottom: 0px;
+        }
+        @media (max-width: 600px) {
+            .movie-item {
+                flex-direction: column;
+            }
+        }
+        .movie-item img {
+            max-height: 350px;
+            width: 195px;
+            float: left;
+            margin-right: 15px;
+            margin-left: 20px;
+            border-radius: 4px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .movie-item h2 {
+            margin-top: 0;
+            font-size: 24px;
+        }
+        .movie-item p strong {
+            font-weight: bold;
+        }
+        .movie-item p {
+            margin-bottom: 5px;
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+        }
+       
+        .sort-menu {
+            margin-bottom: 10px;
+            text-align: center; /* Center align within the container */
+        }
+
+        .sort-menu select {
+            font-size: 16px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            border: none;
+            background-color: #000;
+            color: #fff;
+            width: 240px; /* Adjust width as needed */
+            margin-bottom: 20px;
+        }
+
+        .search-bar {
+            margin-bottom: 10px;
+            text-align: center; /* Center align within the container */
+        }
+
+        .search-bar input {
+            padding: 10px; /* Increase padding for better appearance */
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            width: 70%; /* Adjust width as needed */
+            max-width: 180px; /* Set a max-width to prevent it from stretching too wide */
+            box-sizing: border-box; /* Include padding and border in the width */
+        }
+
+        .search-bar button {
+            font-size: 16px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            border: none;
+            background-color: #000;
+            color: #fff;
+            width: 80px; /* Adjust width as needed */
+            margin-left: 10px;
+        }
+        .back-button {
+            background: none;
+            border: none;
+            color: #007bff; /* Change color as needed */
+            font-size: 16px;
+            cursor: pointer;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .back-button:hover {
+            color: #0056b3; /* Change hover color as needed */
+        }
+
+        .back-button i {
+            margin-left: 10px; /* Adjust spacing between icon and text */
+            margin-top: 10px;
+            font-size: 30px;
+        }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="goBack()">
+        <i class="fas fa-arrow-circle-left"></i> 
+    </button>
+
+        <div class="container">
+            <h1 class="headercontainer">Popular Movies</h1>
+            <div class="sort-menu">
+                <select id="sort-options" onchange="sortMovies(this.value);">
+                    <option value="high-to-low">Rating: High to Low</option>
+                    <option value="low-to-high">Rating: Low to High</option>
+                </select>
+                <div class="search-bar">
+                    <input type="text" id="search-input" placeholder="Search for movies...">
+                    <button onclick="searchMovies(); ">Search</button>
+                </div>
+            </div>
+    
+            <div id="movies-list"></div>
+            <button onclick="showChart();" style="border-radius: 8px; background-color: #000; color: #fff">Show Chart</button>
+            <div class="chart-container">
+                <canvas id="moviesChart"></canvas>
+            </div>
+            <div id="top-popularity-movie" style="margin-top: 20px; font-size: 18px; font-weight: bold; text-align: center;">The Most Popularity Movie:</div>
+        </div>
+    
+        <!-- Bootstrap JS and dependencies -->
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+                integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+                crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"
+                integrity="sha384-smtPB6pdQqGIAjItlF1qnDHlnTGvXpP99Dp9mxgyY1fGOd02FJ45TdW6dphA3LXT"
+                crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+                integrity="sha384-1DmTu78VYinoxXs1z7rW3kgiahc8saFieITfL/vvSb0FTb5pJKF0m0q/R5Tk1KkN"
+                crossorigin="anonymous"></script>
+    
+        <script>
+            const apiKey = 'f21ddcef2cb4a6ee7b1d995013670db7';
+            const baseUrl = 'https://api.themoviedb.org/3';
+    
+            const moviesList = document.getElementById('movies-list');
+            const moviesChart = document.getElementById('moviesChart').getContext('2d');
+            let movieData = [];
+    
+            window.addEventListener('load', () => {
+                fetchMovies();
+            });
+    
+            function fetchMovies() {
+                logInteraction('Fetch Movies');
+                const endpoint = `${baseUrl}/movie/popular?api_key=${apiKey}`;
+                fetch(endpoint)
+                    .then(response => response.json())
+                    .then(data => {
+                        movieData = data.results;
+                        displayMovies(movieData);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data:', error);
+                    });
+            }
+    
+            function displayMovies(movies) {
+                moviesList.innerHTML = '';
+                movies.forEach(movie => {
+                    const popularityClass = movie.popularity > 50 ? 'popular' : 'not-popular';
+                    const formattedReleaseDate = moment(movie.release_date).format('MMMM YYYY');
+    
+                    const movieContainer = document.createElement('div');
+                    movieContainer.classList.add('movie-item-container', popularityClass);
+    
+                    const movieItem = document.createElement('div');
+                    movieItem.classList.add('movie-item');
+    
+                    const moviePoster = document.createElement('img');
+                    moviePoster.src = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+                    moviePoster.alt = movie.title;
+                    movieItem.appendChild(moviePoster);
+    
+                    const movieDetails = document.createElement('div');
+                    movieDetails.classList.add('movie-details');
+    
+                    const movieTitle = document.createElement('h2');
+                    movieTitle.textContent = movie.title;
+                    movieDetails.appendChild(movieTitle);
+    
+                    const movieReleaseDate = document.createElement('p');
+                    movieReleaseDate.innerHTML = `<strong>Release Date:</strong> ${formattedReleaseDate}`;
+                    movieDetails.appendChild(movieReleaseDate);
+    
+                    const movieRating = document.createElement('p');
+                    movieRating.innerHTML = `<strong>Rating:</strong> ${movie.vote_average}`;
+                    movieDetails.appendChild(movieRating);
+    
+                    const moviePopularity = document.createElement('p');
+                    moviePopularity.innerHTML = `<strong>Popularity:</strong> ${movie.popularity}`;
+                    movieDetails.appendChild(moviePopularity);
+    
+                    const movieReview = document.createElement('p');
+                    movieReview.classList.add('review');
+                    movieReview.innerHTML = `<strong>Review:</strong> ${movie.overview}`;
+                    movieDetails.appendChild(movieReview);
+    
+                    movieItem.appendChild(movieDetails);
+                    movieContainer.appendChild(movieItem);
+                    moviesList.appendChild(movieContainer);
+                });
+            }
+    
+            function sortMovies(order) {
+                logInteraction('Sort Movies by ' + this.value)
+                const sortedMovies = [...movieData].sort((a, b) => {
+                    return order === 'high-to-low' ? b.vote_average - a.vote_average : a.vote_average - b.vote_average;
+                });
+                displayMovies(sortedMovies);
+            }
+    
+            function searchMovies() {
+                logInteraction('Search Movies');
+                const searchInput = document.getElementById('search-input').value.toLowerCase();
+                const filteredMovies = movieData.filter(movie => movie.title.toLowerCase().includes(searchInput));
+                displayMovies(filteredMovies);
+            }
+    
+            function getTopPopularityMovie(movies) {
+                if (movies.length === 0) return null;
+                return movies.reduce((topMovie, currentMovie) => {
+                    return currentMovie.popularity > topMovie.popularity ? currentMovie : topMovie;
+                });
+            }
+            function showChart() {
+                logInteraction('Show Movies Chart');
+                
+                // Sort movies by rating (highest to lowest) and take the top 10
+                const topMovies = movieData.sort((a, b) => b.vote_average - a.vote_average).slice(0, 8);
+
+                const movieTitles = topMovies.map(movie => movie.title);
+                const movieRatings = topMovies.map(movie => movie.vote_average);
+
+                new Chart(moviesChart, {
+                    type: 'bar',
+                    data: {
+                        labels: movieTitles,
+                        datasets: [{
+                            label: 'Movie Ratings',
+                            data: movieRatings,
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: {
+                                ticks: {
+                                    autoSkip: false,
+                                    maxRotation: 90,
+                                    minRotation: 45
+                                }
+                            },
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+                
+                const topMovie = topMovies[0];
+                if (topMovie) {
+                    document.getElementById('top-popularity-movie').textContent = `Top Popularity Movie: ${topMovie.title} (Popularity Score: ${topMovie.popularity})`;
+                }
+            }
+    
+            function logInteraction(action) {
+                const interactions = JSON.parse(localStorage.getItem('interactions')) || [];
+                const now = new Date();
+                const date = now.toLocaleDateString();
+                const time = now.toLocaleTimeString();
+                const interaction = {
+                    action,
+                    date,
+                    time
+                };
+                interactions.push(interaction);
+                localStorage.setItem('interactions', JSON.stringify(interactions));
+            }
+
+            function goBack() {
+                 window.location.href = 'index.html';
+            }
+
+        </script>
+    </body>
+    </html>
+    
